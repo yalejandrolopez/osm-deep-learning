@@ -95,7 +95,17 @@ for i in range(len(geo_tiling)-1):
 
         bboxes[i][j] = geo_tiling.geometry[i].bounds[j]
 
-# extract wms
+# extract polygons
+clipped_labels = []
+for i in range(len(geo_tiling)-1):
+
+    clipped_labels.append(labels.clip(geo_tiling.geometry[i]))
+
+for i in range(len(clipped_labels)):
+
+    clipped_labels[i].to_file('labels/' +  str(int(bboxes[i][0])) +'_'+ str(int(bboxes[i][1])) +'_'+ str(int(bboxes[i][2])) + '_'+ str(int(bboxes[i][3])) + '.geojson', driver = "GeoJSON")
+
+# extract GeoTiffs
 wms = WebMapService('https://imageserver.gisdata.mn.gov/cgi-bin/wmsll?')
 wms = WebMapService('https://wms.geo.admin.ch/service')
 #print(wms.identification.type)
@@ -117,6 +127,7 @@ print(wms[layer].styles)
 wms.getOperationByName('GetMap').methods
 wms.getOperationByName('GetMap').formatOptions
 
+# extract images
 for i in range(len(bboxes)):
     img = wms.getmap(   layers=[layer],
                      #styles=['visual_bright'],
@@ -129,4 +140,3 @@ for i in range(len(bboxes)):
     out = open('img/' + str(int(bboxes[i][0])) +'_'+ str(int(bboxes[i][1])) +'_'+ str(int(bboxes[i][2])) + '_'+ str(int(bboxes[i][3])) + '.tiff', 'wb')
     out.write(img.read())
     out.close()
-
