@@ -1,3 +1,5 @@
+import time
+
 from owslib.wms import WebMapService
 import geopandas as gpd
 import argparse
@@ -5,6 +7,8 @@ import os, sys
 import math
 import numpy as np
 from shapely.geometry import Polygon, LineString, Point
+from multiprocessing import Pool
+
 
 # Argument and parameter specification
 parser = argparse.ArgumentParser(description="Tile generator tool (STDL)")
@@ -15,6 +19,7 @@ args = parser.parse_args()
 
 # import osm dataset
 labels = gpd.read_file(args.labels)
+
 labels = labels.to_crs(2056)
 
 # select only labels for training
@@ -24,6 +29,8 @@ sel = ['fire_station', 'graveyard', 'hospital', 'park', 'pitch', 'playground', '
 labels = labels[labels['fclass'].isin(sel)]
 ls = ['pitch', 'dog_park', 'theme_park', 'playground']
 labels.loc[labels.fclass.isin(ls),'fclass']='park'
+
+##labels.to_file("C:\\Users\\user\\Documents\\Msc\\MachineLearningImages\\Data\\processed\\gis_osm_pois_class.shp")
 
 # create tiles over all of Switzerland
 shift_x = int(+round( args.size * 0. ))
@@ -89,7 +96,7 @@ bboxes = np.zeros((len(geo_tiling),4))
 
 tile_copy = geo_tiling.copy()
 geo_tiling.reset_index(drop=True, inplace=True)
-for i in range(len(geo_tiling)-1):
+for i in range(len(geo_tiling)):
 
     for j in range(0,4):
 
@@ -97,13 +104,33 @@ for i in range(len(geo_tiling)-1):
 
 # extract polygons
 clipped_labels = []
+print("Clipping...")
+#def clipping(labels, geo_tiling):
+#    return clipped_labels.append(gpd.clip(labels, geo_tiling.geometry[i]))
+
+
+#def clip_pool(labels, geo_tiling):
+#    a_args = [labels, geo_tiling]
+#    second_arg = geo_tiling
+#    with Pool() as pool:
+#        L = pool.starmap(clipping, [labels,geo_tiling])
+#        M = pool.starmap(clipping, zip(a_args, repeat(second_arg)))
+#        N = pool.map(partial(clipping, b=second_arg), a_args)
+#        assert L == M == N
+
+#if __name__=="__clip_pool__":
+#    clip_pool()
 for i in range(len(geo_tiling)-1):
+    clipped_labels.append(gpd.clip(labels, geo_tiling.geometry[i]))
+    #clipped_labels.append(labels.clip(geo_tiling.geometry[i]))
 
-    clipped_labels.append(labels.clip(geo_tiling.geometry[i]))
 
+
+print("dir: ",os.getcwd())
 for i in range(len(clipped_labels)):
 
     os.mkdir('labels/' +  str(int(bboxes[i][0])) +'_'+ str(int(bboxes[i][1])) +'_'+ str(int(bboxes[i][2])) + '_'+ str(int(bboxes[i][3])))
+
 
 for i in range(len(clipped_labels)):
 
@@ -131,18 +158,44 @@ print(wms[layer].styles)
 wms.getOperationByName('GetMap').methods
 wms.getOperationByName('GetMap').formatOptions
 
+
+print("Extraction...")
 # extract images
+i=31
+print(bboxes[i][0], bboxes[i][1], bboxes[i][2], bboxes[i][3])
+
 for i in range(len(bboxes)):
-    img = wms.getmap(   layers=[layer],
-                     #styles=['visual_bright'],
-                     srs='EPSG:2056',
-                     bbox=(bboxes[i][0], bboxes[i][1], bboxes[i][2], bboxes[i][3]),
-                     size=(512, 512),
-                     format='image/tiff',
-                     transparent=True
-                     )
-    out = open('img/' + str(int(bboxes[i][0])) +'_'+ str(int(bboxes[i][1])) +'_'+ str(int(bboxes[i][2])) + '_'+ str(int(bboxes[i][3])) + '.tiff', 'wb')
+    try:
+        img = wms.getmap(   layers=[layer],
+                         #styles=['visual_bright'],
+                         srs='EPSG:2056',
+                         bbox=(bboxes[i][0], bboxes[i][1], bboxes[i][2], bboxes[i][3]),
+                         size=(512, 512),
+                         format='image/tiff',
+                         transparent=True
+                         )
+    except:
+        time.sleep(10)
+        try:
+            img = wms.getmap(layers=[layer],
+                             # styles=['visual_bright'],
+                             srs='EPSG:2056',
+                             bbox=(bboxes[i][0], bboxes[i][1], bboxes[i][2], bboxes[i][3]),
+                             size=(512, 512),
+                             format='image/tiff',
+                             transparent=True
+                             )
+        except:
+            continue
+
+    out = open(
+        'img/' + str(int(bboxes[i][0])) + '_' + str(int(bboxes[i][1])) + '_' + str(int(bboxes[i][2])) + '_' + str(
+            int(bboxes[i][3])) + '.tiff', 'wb')
     out.write(img.read())
     out.close()
 
-os.remove('img/*.xml')
+
+try:
+    os.remove('img/*.xml')
+except:
+    pass
