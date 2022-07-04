@@ -6,7 +6,6 @@ import sys
 import pickle
 from optparse import OptionParser
 import time
-import tensorflow as tf
 from keras_frcnn import config
 from keras import backend as K
 from keras.layers import Input
@@ -114,7 +113,7 @@ if C.network == 'resnet50':
 elif C.network == 'vgg':
         num_features = 512
 
-if tf.K.backend.image_data_format() == 'th':
+if K.backend.image_data_format() == 'th':
         input_shape_img = (3, None, None)
         input_shape_features = (num_features, None, None)
 else:
@@ -166,14 +165,14 @@ for idx, img_name in enumerate(sorted(os.listdir(img_path))):
 
         X, ratio = format_img(img, C)
 
-        if tf.K.backend.image_data_format() == 'tf':
+        if K.backend.image_data_format() == 'tf':
                 X = np.transpose(X, (0, 2, 3, 1))
 
         # get the feature maps and output from the RPN
         [Y1, Y2, F] = model_rpn.predict(X)
         
 
-        R = roi_helpers.rpn_to_roi(Y1, Y2, C, tf.K.backend.image_data_format(), overlap_thresh=0.7)
+        R = roi_helpers.rpn_to_roi(Y1, Y2, C, K.backend.image_data_format(), overlap_thresh=0.7)
 
         # convert from (x1,y1,x2,y2) to (x,y,w,h)
         R[:, 2] -= R[:, 0]
