@@ -11,13 +11,13 @@ from __future__ import absolute_import
 from keras.layers import Input, Add, Dense, Activation, Flatten, Convolution2D, MaxPooling2D, ZeroPadding2D, \
     AveragePooling2D, TimeDistributed
 
-import keras.backend
+from keras import backend as K
 
 from keras_frcnn.RoiPoolingConv import RoiPoolingConv
 from keras_frcnn.FixedBatchNormalization import FixedBatchNormalization
 
 def get_weight_path():
-    if keras.backend.image_dim_ordering() == 'th':
+    if K.image_dim_ordering() == 'th':
         return 'resnet50_weights_th_dim_ordering_th_kernels_notop.h5'
     else:
         return 'resnet50_weights_tf_dim_ordering_tf_kernels.h5'
@@ -39,7 +39,7 @@ def identity_block(input_tensor, kernel_size, filters, stage, block, trainable=T
 
     nb_filter1, nb_filter2, nb_filter3 = filters
     
-    if keras.backend.image_data.format() == 'tf':
+    if K.image_dim_ordering() == 'tf':
         bn_axis = 3
     else:
         bn_axis = 1
@@ -68,7 +68,7 @@ def identity_block_td(input_tensor, kernel_size, filters, stage, block, trainabl
     # identity block time distributed
 
     nb_filter1, nb_filter2, nb_filter3 = filters
-    if keras.backend.image_data_format() == 'tf':
+    if K.image_dim_ordering() == 'tf':
         bn_axis = 3
     else:
         bn_axis = 1
@@ -95,7 +95,7 @@ def identity_block_td(input_tensor, kernel_size, filters, stage, block, trainabl
 def conv_block(input_tensor, kernel_size, filters, stage, block, strides=(2, 2), trainable=True):
 
     nb_filter1, nb_filter2, nb_filter3 = filters
-    if keras.backend.image_dim_ordering() == 'tf':
+    if K.image_dim_ordering() == 'tf':
         bn_axis = 3
     else:
         bn_axis = 1
@@ -127,7 +127,7 @@ def conv_block_td(input_tensor, kernel_size, filters, stage, block, input_shape,
     # conv block time distributed
 
     nb_filter1, nb_filter2, nb_filter3 = filters
-    if keras.backend.image_data_format() == 'tf':
+    if K.image_dim_ordering() == 'tf':
         bn_axis = 3
     else:
         bn_axis = 1
@@ -156,7 +156,7 @@ def conv_block_td(input_tensor, kernel_size, filters, stage, block, input_shape,
 def nn_base(input_tensor=None, trainable=False):
 
     # Determine proper input shape
-    if keras.backend.image_data_format() == 'th':
+    if K.image_dim_ordering() == 'th':
         input_shape = (3, None, None)
     else:
         input_shape = (None, None, 3)
@@ -164,12 +164,12 @@ def nn_base(input_tensor=None, trainable=False):
     if input_tensor is None:
         img_input = Input(shape=input_shape)
     else:
-        if not keras.backend.is_keras_tensor(input_tensor):
+        if not K.is_keras_tensor(input_tensor):
             img_input = Input(tensor=input_tensor, shape=input_shape)
         else:
             img_input = input_tensor
 
-    if keras.backend.image_data_format() == 'tf':
+    if K.image_dim_ordering() == 'tf':
         bn_axis = 3
     else:
         bn_axis = 1
@@ -204,9 +204,9 @@ def classifier_layers(x, input_shape, trainable=False):
 
     # compile times on theano tend to be very high, so we use smaller ROI pooling regions to workaround
     # (hence a smaller stride in the region that follows the ROI pool)
-    if keras.backend() == 'tensorflow':
+    if K.backend() == 'tensorflow':
         x = conv_block_td(x, 3, [512, 512, 2048], stage=5, block='a', input_shape=input_shape, strides=(2, 2), trainable=trainable)
-    elif keras.backend() == 'theano':
+    elif K.backend() == 'theano':
         x = conv_block_td(x, 3, [512, 512, 2048], stage=5, block='a', input_shape=input_shape, strides=(1, 1), trainable=trainable)
 
     x = identity_block_td(x, 3, [512, 512, 2048], stage=5, block='b', trainable=trainable)
@@ -229,10 +229,10 @@ def classifier(base_layers, input_rois, num_rois, nb_classes = 21, trainable=Fal
 
     # compile times on theano tend to be very high, so we use smaller ROI pooling regions to workaround
 
-    if keras.backend() == 'tensorflow':
+    if K.backend() == 'tensorflow':
         pooling_regions = 14
         input_shape = (num_rois,14,14,1024)
-    elif keras.backend() == 'theano':
+    elif K.backend() == 'theano':
         pooling_regions = 7
         input_shape = (num_rois,1024,7,7)
 
