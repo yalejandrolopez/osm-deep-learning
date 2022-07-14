@@ -13,7 +13,7 @@ from multiprocessing import Pool
 
 # Argument and parameter specification
 parser = argparse.ArgumentParser(description="WMS Image Extractor")
-parser.add_argument('--labels' , type=str  , help='Label geographic file')
+parser.add_argument('--labels' , type=str  , help='Label geographic file', default = "osm-data/gis_osm_pois_a_free_1.shp")
 parser.add_argument('--size'   , type=int  , help='Tile size in meters', default = 500 )
 parser.add_argument('--output' , type=str  , help='Output directory', default='img/')
 args = parser.parse_args()
@@ -193,7 +193,7 @@ for i in range(len(bboxes)):
 
     t2 = time.time()
     print(len(bboxes) - i, "images remaining")
-    remaining_time = round((t2 - t1) / 60, 2) * len(bboxes) - i
+    remaining_time = round((t2 - t1) / 60, 2) * (len(bboxes) - i)
     print("~", remaining_time, "min to end  \n")
 try:
     os.remove('img/*.xml')
