@@ -4,6 +4,7 @@ from owslib.wms import WebMapService
 import geopandas as gpd
 import argparse
 import os, sys
+import time
 import math
 import numpy as np
 from shapely.geometry import Polygon, LineString, Point
@@ -11,10 +12,10 @@ from multiprocessing import Pool
 
 
 # Argument and parameter specification
-parser = argparse.ArgumentParser(description="Tile generator tool (STDL)")
+parser = argparse.ArgumentParser(description="WMS Image Extractor")
 parser.add_argument('--labels' , type=str  , help='Label geographic file')
-parser.add_argument('--size'   , type=int  , help='Tile size in meters' )
-parser.add_argument('--output' , type=str  , help='Output directory', default='.')
+parser.add_argument('--size'   , type=int  , help='Tile size in meters', default = 500 )
+parser.add_argument('--output' , type=str  , help='Output directory', default='img/')
 args = parser.parse_args()
 
 # import osm dataset
@@ -32,10 +33,6 @@ labels.loc[labels.fclass.isin(ls),'fclass']='park'
 
 ##labels.to_file("C:\\Users\\user\\Documents\\Msc\\MachineLearningImages\\Data\\processed\\gis_osm_pois_class.shp")
 
-# create tiles over all of Switzerland
-shift_x = int(+round( args.size * 0. ))
-shift_y = int(+round( args.size * 0. ))
-
 # Prevent duplicated tiles
 dupl = []
 
@@ -52,10 +49,10 @@ for index, row in labels.iterrows():
     bbox = row['geometry'].bounds
 
     # round bounding box
-    bbox_rlx = math.floor( ( bbox[0] - shift_x ) / args.size ) * args.size + shift_x
-    bbox_rly = math.floor( ( bbox[1] - shift_y ) / args.size ) * args.size + shift_y
-    bbox_rhx = math.ceil ( ( bbox[2] - shift_x ) / args.size ) * args.size + shift_x
-    bbox_rhy = math.ceil ( ( bbox[3] - shift_y ) / args.size ) * args.size + shift_y
+    bbox_rlx = math.floor( ( bbox[0] ) / args.size ) * args.size
+    bbox_rly = math.floor( ( bbox[1] ) / args.size ) * args.size
+    bbox_rhx = math.ceil ( ( bbox[2] ) / args.size ) * args.size
+    bbox_rhy = math.ceil ( ( bbox[3] ) / args.size ) * args.size
 
     # create grid over the rounded bounding box
     for x in range( bbox_rlx, bbox_rhx, args.size ):
@@ -146,13 +143,13 @@ wms = WebMapService('https://wms.geo.admin.ch/service')
 #print(list(wms.contents))
 
 layer = 'ch.swisstopo.swissimage'
-print(wms[layer].title)
-print(wms[layer].queryable)
-print(wms[layer].opaque)
-print(wms[layer].boundingBox)
-print(wms[layer].boundingBoxWGS84)
-print(wms[layer].crsOptions)
-print(wms[layer].styles)
+#print(wms[layer].title)
+#print(wms[layer].queryable)
+#print(wms[layer].opaque)
+#print(wms[layer].boundingBox)
+#print(wms[layer].boundingBoxWGS84)
+#print(wms[layer].crsOptions)
+#print(wms[layer].styles)
 
 [op.name for op in wms.operations]
 wms.getOperationByName('GetMap').methods
@@ -161,16 +158,16 @@ wms.getOperationByName('GetMap').formatOptions
 
 print("Extraction...")
 # extract images
-i=31
-print(bboxes[i][0], bboxes[i][1], bboxes[i][2], bboxes[i][3])
 
 for i in range(len(bboxes)):
+    t1 = time.time()
+    #print(bboxes[i][0], bboxes[i][1], bboxes[i][2], bboxes[i][3])
     try:
         img = wms.getmap(   layers=[layer],
                          #styles=['visual_bright'],
                          srs='EPSG:2056',
                          bbox=(bboxes[i][0], bboxes[i][1], bboxes[i][2], bboxes[i][3]),
-                         size=(512, 512),
+                         size=(5000, 5000),
                          format='image/tiff',
                          transparent=True
                          )
@@ -181,7 +178,7 @@ for i in range(len(bboxes)):
                              # styles=['visual_bright'],
                              srs='EPSG:2056',
                              bbox=(bboxes[i][0], bboxes[i][1], bboxes[i][2], bboxes[i][3]),
-                             size=(512, 512),
+                             size=(5000, 5000),
                              format='image/tiff',
                              transparent=True
                              )
@@ -194,7 +191,10 @@ for i in range(len(bboxes)):
     out.write(img.read())
     out.close()
 
-
+    t2 = time.time()
+    print(len(bboxes) - i, "images remaining")
+    remaining_time = round((t2 - t1) / 60, 2) * len(bboxes) - i
+    print("~", remaining_time, "min to end  \n")
 try:
     os.remove('img/*.xml')
 except:
