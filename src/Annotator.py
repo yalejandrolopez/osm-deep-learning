@@ -49,10 +49,15 @@ for i in files:
         miny2 = win_maxy - maxy
         maxy2 = win_maxy - miny
 
-        annotation.append('img/'+i+".tiff,"+ str(minx2) +","+str(miny2)+","+str(maxx2)+","+str(maxy2)+","+layer.iloc[0]['fclass'])
+        annotation.append('img/'+i+".tiff,"+ str(int(minx2/0.1)) +","+str(int(miny2/0.1))+","+str(int(maxx2/0.1))+","+str(int(maxy2/0.1))+","+layer.iloc[0]['fclass'])
 
 
-textfile = open("annotation_file.txt", "w")
+textfile = open("src/"+"annotate.txt", "w")
 for element in annotation:
     textfile.write(element + "\n")
 textfile.close()
+
+
+#osm = gpd.read_file("C:\\Users\\yalej\\Documents\\Msc\\MachineLearningImages\\osm-deep-learning\\osm-data\\gis_osm_pois_a_free_1.shp")
+#labels = osm.copy()
+#labels['fclass'].value_counts()
