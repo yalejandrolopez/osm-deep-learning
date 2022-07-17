@@ -2,10 +2,15 @@ import os
 import geopandas as gpd
 
 files = os.listdir('labels')
+images = os.listdir('img')
 annotation = []
-
-
+print(len(images))
 for i in files:
+    if i+".tiff" not in images:
+        if i+".tiff"=="2540000_1151000_2540500_1151500.tiff":
+            print(i+".tiff")
+        continue
+
     #files = os.listdir(r"C:\Users\user\Documents\Msc\MachineLearningImages\src\labels")
     #i = files[0]
     shapes = os.listdir('labels/' + i)
@@ -17,7 +22,6 @@ for i in files:
         if layer.area.iloc[j]<30:
             continue
         #Expand bounds
-
 
         deltax = ((layer.bounds.iloc[j].maxx- layer.bounds.iloc[j].minx)*0.15) #30% divided by 2 for each bound
         deltay = ((layer.bounds.iloc[j].maxy - layer.bounds.iloc[j].miny) * 0.15)  # 30% divided by 2 for each bound
