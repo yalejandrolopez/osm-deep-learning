@@ -191,11 +191,11 @@ def nn_base(input_tensor=None, trainable=False):
     x = identity_block(x, 3, [128, 128, 512], stage=3, block='d', trainable = trainable)
 
     x = conv_block(x, 3, [256, 256, 1024], stage=4, block='a', trainable = trainable)
-    x = identity_block(x, 3, [128, 128, 512], stage=4, block='b', trainable = trainable)
-    x = identity_block(x, 3, [128, 128, 512], stage=4, block='c', trainable = trainable)
-    x = identity_block(x, 3, [128, 128, 512], stage=4, block='d', trainable = trainable)
-    x = identity_block(x, 3, [128, 128, 512], stage=4, block='e', trainable = trainable)
-    x = identity_block(x, 3, [128, 128, 512], stage=4, block='f', trainable = trainable)
+    x = identity_block(x, 3, [128, 128, 1024], stage=4, block='b', trainable = trainable)
+    x = identity_block(x, 3, [128, 128, 1024], stage=4, block='c', trainable = trainable)
+    x = identity_block(x, 3, [128, 128, 1024], stage=4, block='d', trainable = trainable)
+    x = identity_block(x, 3, [128, 128, 1024], stage=4, block='e', trainable = trainable)
+    x = identity_block(x, 3, [128, 128, 1024], stage=4, block='f', trainable = trainable)
 
     return x
 
@@ -205,12 +205,12 @@ def classifier_layers(x, input_shape, trainable=False):
     # compile times on theano tend to be very high, so we use smaller ROI pooling regions to workaround
     # (hence a smaller stride in the region that follows the ROI pool)
     if K.backend() == 'tensorflow':
-        x = conv_block_td(x, 3, [256, 256, 1024], stage=5, block='a', input_shape=input_shape, strides=(2, 2), trainable=trainable)
+        x = conv_block_td(x, 3, [512, 512, 2048], stage=5, block='a', input_shape=input_shape, strides=(2, 2), trainable=trainable)
     elif K.backend() == 'theano':
-        x = conv_block_td(x, 3, [256, 256, 1024], stage=5, block='a', input_shape=input_shape, strides=(1, 1), trainable=trainable)
+        x = conv_block_td(x, 3, [512, 512, 2048], stage=5, block='a', input_shape=input_shape, strides=(1, 1), trainable=trainable)
 
-    x = identity_block_td(x, 3, [256, 256, 1024], stage=5, block='b', trainable=trainable)
-    x = identity_block_td(x, 3, [256, 256, 1024], stage=5, block='c', trainable=trainable)
+    x = identity_block_td(x, 3, [512, 512, 2048], stage=5, block='b', trainable=trainable)
+    x = identity_block_td(x, 3, [512, 512, 2048], stage=5, block='c', trainable=trainable)
     x = TimeDistributed(AveragePooling2D((7, 7)), name='avg_pool')(x)
 
     return x
