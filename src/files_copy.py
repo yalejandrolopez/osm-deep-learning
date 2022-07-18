@@ -12,7 +12,7 @@ target_path = args.folder
 files = os.listdir('labels')
 images = os.listdir('img')
 annotation = []
-ls = ['school']
+ls = ['graveyard']
 
 for i in files:
     shapes = os.listdir('labels/' + i)
@@ -30,8 +30,11 @@ for i in files:
     if status==True:
         status==False
         continue
-    shutil.copytree('labels/'+shapes, target_path+'/labels/'+shapes)
-    shutil.copyfile('img/'+ i + ".tiff", target_path + '/img/'+ i + ".tiff")
+    try:
+        shutil.copytree('labels/'+i, target_path+'/labels/'+i)
+        shutil.copyfile('img/'+ i + ".tiff", target_path + '/img/'+ i + ".tiff")
+    except:
+        continue
 
 
 # osm = gpd.read_file("C:\\Users\\yalej\\Documents\\Msc\\MachineLearningImages\\osm-deep-learning\\osm-data\\gis_osm_pois_a_free_1.shp")
