@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(description="Move files")
 parser.add_argument('-l', '--labels' , type=str, help='vector layer', default="osm-data/gis_osm_pois_a_free_1.shp")
 parser.add_argument('--img' , type=str  , help='Folder of images', default="img/")
 parser.add_argument('-o', '--output' , type=str  , help='folder to write labels', default="labels/")
-parser.add_argument('--objects' , type=str , help="objects to be used. example : 'graveyard pitch'")
+parser.add_argument('--objects' , type=str , help="objects to be used. example : 'graveyard,pitch'")
 args = parser.parse_args()
 images = args.img
 
