@@ -71,5 +71,5 @@ for i in sjoin.index_right.unique():
 #print(labels['fclass'].value_counts())
 #ls = ['graveyard', 'park']
 
-ann = pd.read_csv("src/annotate.txt")
-ann[args.objects].value_counts()
+#ann = pd.read_csv("src/annotate.txt")
+#ann[args.objects].value_counts()
